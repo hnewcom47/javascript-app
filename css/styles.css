@@ -1,0 +1,10 @@
+* {
+  box-sizing: border-box;
+  max-width: 1200px;
+  margin: 10px auto;
+}
+
+body {
+  background-color: yellow;
+  font-family: 'Fredoka One', cursive;
+}
