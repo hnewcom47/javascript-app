@@ -1,14 +1,9 @@
 let pokemonRepository = (function () {
-  let pokemonList = [
-    {name: 'Squirtle', height: 0.5, types: ['water', 'monster']},
-    {name: 'Pikachu', height: 0.4, types: ['electric', 'field', 'fairy']},
-    {name: 'Jigglypuff', height: 0.5, types: ['fairy', 'normal']},
-    {name: 'Charizard', height: 1.7, types: ['fire', 'flying', 'monster', 'dragon']},
-    {name: 'Onix', height: 8.8, types: ['rock', 'ground', 'mineral']}
-  ];
+  let pokemonList = [];
+  let apiUrl = 'https://pokeapi.co/api/v2/pokemon/';
 
   function add(pokemon) {
-    if (typeof pokemon === 'object' && Object.keys(pokemon) === 'name', 'height', 'types'){
+    if (typeof pokemon === 'object' && Object.keys(pokemon) === 'name', 'detailsUrl'){
       pokemonList.push(pokemon);
     }
   }
@@ -35,20 +30,54 @@ let pokemonRepository = (function () {
     });
   }
 
-  function showDetails(pokemon) {
-    console.log(pokemon.name);
+  function loadList() {
+    return fetch(apiUrl).then(function (response) {
+      return response.json();
+    }).then(function (json) {
+      json.results.forEach(function (item) {
+        let pokemon = {
+          name: item.name,
+          detailsUrl: item.url
+        };
+        add(pokemon);
+      });
+    }).catch(function (e) {
+      console.error(e);
+    })
+  }
+
+  function loadDetails(item) {
+    let url = item.detailsUrl;
+    return fetch(url).then(function (response) {
+      return response.json();
+    }).then(function (details) {
+      item.imageUrl = details.sprites.front_default;
+      item.height = details.height;
+      item.types = details.types;
+    }).catch(function (e) {
+      console.error(e);
+    });
+  }
+
+  function showDetails(item) {
+    pokemonRepository.loadDetails(item).then(function () {
+      console.log(item);
+    });
   }
 
   return {
     add: add,
     getAll: getAll,
-    addListItem: addListItem
+    addListItem: addListItem,
+    loadList: loadList,
+    loadDetails: loadDetails,
+    showDetails: showDetails
   };
 
 })();
 
-pokemonRepository.add({name: 'Venusaur', height: 2, types: ['grass', 'poison', 'monster']});
-
-pokemonRepository.getAll().forEach(function (pokemon) {
-  pokemonRepository.addListItem(pokemon);
+pokemonRepository.loadList().then(function () {
+  pokemonRepository.getAll().forEach(function (pokemon) {
+    pokemonRepository.addListItem(pokemon);
+  });
 });
